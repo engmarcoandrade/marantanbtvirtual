@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="theme-color" content="#1e3a8a">
+    <title>🎯 Método Marantan - Gestão Perfeita V28.3</title>
+    <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600;700;900&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root { 
+            --bg: #f1f5f9; --surface: #ffffff; --surface2: #e2e8f0; --border: #94a3b8; 
+            --accent: #1e3a8a; --accent-hover: #172554; --text: #0f172a; --muted: #475569; 
+            --win: #2563eb; --loss: #b91c1c; --radius: 4px; --shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            --purple: #673ab7; --purple-hover: #512da8;
+        }
+        body.dark-mode { 
+            --bg: #0f172a; --surface: #1e293b; --surface2: #334155; --border: #475569; 
+            --accent: #3b82f6; --text: #f8fafc; --muted: #cbd5e1; --win: #60a5fa; 
+            --loss: #f87171; --shadow: 0 4px 12px rgba(0,0,0,0.5); 
+            --purple: #9c27b0;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg); color: var(--text); transition: background-color 0.15s, color 0.15s; line-height: 1.4; font-size: 14px; }
+        
+        header { background-color: var(--surface); border-bottom: 2px solid var(--accent); padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
+        .logo-container { display: flex; flex-direction: column; }
+        .logo { font-size: 16px; font-weight: 700; color: var(--text); }
+        .version-tag { font-size: 11px; color: var(--muted); font-weight: 600; margin-top: 1px; }
+        .status-container { display: flex; gap: 4px; margin-top: 4px; }
+        .status-sheets { font-size: 10px; padding: 3px 6px; border-radius: var(--radius); font-weight: 700; border: none; cursor: default; }
+        .status-on { background: #dcfce7; color: #166534; border: 2px solid #bbf7d0; }
+        .status-sync { background: #fef9c3; color: #854d0e; border: 2px solid #fef08a; }
+        .status-err { background: #fee2e2; color: #991b1b; border: 2px solid #fecaca; }
+        .btn-force-sync { font-size: 10px; padding: 3px 6px; border-radius: var(--radius); font-weight: 700; border: 2px solid var(--border); background: var(--surface2); color: var(--text); cursor: pointer; }
+        
+        .tabs { display: flex; overflow-x: auto; scrollbar-width: none; background: var(--surface); border-bottom: 2px solid var(--border); padding: 0 8px; position: sticky; top: 65px; z-index: 99; }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab-btn { background: transparent; color: var(--muted); font-size: 13px; padding: 12px 14px; border: none; border-bottom: 3px solid transparent; font-weight: 600; white-space: nowrap; cursor: pointer; }
+        .tab-btn.active { color: var(--accent); border-bottom: 3px solid var(--accent); font-weight: 700; }
+        
+        .container { padding: 12px 12px 32px; max-width: 100%; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .win-input { width: 100%; padding: 8px 10px; border: 2px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); font-family: 'Segoe UI', sans-serif; font-size: 14px; font-weight: 600; outline: none; }
+        .win-input:disabled { background: var(--surface2); cursor: not-allowed; }
+        
+        .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+        .kpi-card { background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius); padding: 12px; box-shadow: var(--shadow); }
+        .kpi-title { font-size: 11px; color: var(--muted); text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
+        .kpi-value { font-family: 'Segoe UI', sans-serif; font-size: 16px; font-weight: 800; color: var(--text); }
+        .win-border { border-left: 4px solid var(--win); }
+        .loss-border { border-left: 4px solid var(--loss); }
+        
+        .win-modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); z-index: 1000; align-items: center; justify-content: center; padding: 24px; }
+        .win-modal-box { background: var(--surface); border: 2px solid var(--border); width: 100%; max-width: 340px; box-shadow: 0 4px 20px rgba(0,0,0,0.4); display: flex; flex-direction: column; border-radius: var(--radius); }
+        .win-modal-header { padding: 12px 16px; font-size: 14px; font-weight: 800; color: white; display: flex; align-items: center; gap: 8px; border-radius: var(--radius) var(--radius) 0 0; }
+        .win-modal-header.meta-style { background: var(--win); }
+        .win-modal-header.stop-style { background: var(--loss); }
+        .win-modal-header.preview-style { background: var(--purple); }
+        .win-modal-body { padding: 16px; font-size: 14px; line-height: 1.4; color: var(--text); font-weight: 600; max-height: 300px; overflow-y: auto; }
+        .win-modal-footer { padding: 12px 16px; display: flex; justify-content: flex-end; gap: 8px; background: var(--surface2); border-top: 2px solid var(--border); border-radius: 0 0 var(--radius) var(--radius); }
+        .btn-modal-close { background: var(--surface); color: var(--text); border: 2px solid var(--border); font-weight: 700; padding: 6px 16px; cursor: pointer; border-radius: var(--radius); }
+        .btn-modal-confirm { background: var(--win); color: white; border: 2px solid var(--win); font-weight: 700; padding: 6px 16px; cursor: pointer; border-radius: var(--radius); }
+
+        .processing-toast { display: none; position: fixed; bottom: 20px; right: 20px; background: var(--surface); border: 2px solid var(--accent); padding: 12px 16px; border-radius: var(--radius); box-shadow: 0 4px 16px rgba(0,0,0,0.2); z-index: 2000; width: 260px; flex-direction: column; gap: 6px; }
+        .processing-header { display: flex; justify-content: space-between; font-weight: 700; font-size: 12px; color: var(--text); }
+        .processing-bar-container { width: 100%; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+        .processing-bar-fill { width: 0%; height: 100%; background: var(--win); }
+        
+        .etapa-painel { background: var(--surface); padding: 12px; border-radius: var(--radius); margin-bottom: 12px; border: 2px solid var(--border); box-shadow: var(--shadow); border-top: 4px solid var(--accent); }
+        .etapa-info { margin-bottom: 8px; font-size: 13px; color: var(--muted); font-weight: 600; }
+        .etapa-info strong { color: var(--text); font-weight: 800; }
+        
+        .command-panel-top { background: var(--surface); border: 2px solid var(--border); padding: 12px; margin-bottom: 12px; box-shadow: var(--shadow); border-radius: var(--radius); }
+        .panel-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+        
+        .grid-cards-letras { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; margin-top: 8px; }
+        .card-letra-operacional { background: var(--surface2); border: 2px solid var(--border); padding: 10px; display: flex; flex-direction: column; gap: 6px; position: relative; border-radius: var(--radius); transition: opacity 0.2s, filter 0.2s; }
+        .card-letra-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px dashed var(--border); padding-bottom: 4px; gap: 4px; }
+        .card-letra-note { font-size: 11px; font-weight: 600; color: var(--muted); max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .card-letra-amount { font-size: 12px; font-weight: 700; color: var(--text); background: var(--surface); border: 1px solid var(--border); padding: 4px; border-radius: 2px; text-align: center; font-family: 'DM Mono', monospace; }
+        .card-letra-footer-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 2px; }
+        
+        .total-letra-badge { font-weight: 900; background: var(--text); color: var(--surface); padding: 2px 8px; border-radius: 2px; font-size: 13px; }
+        .card-resultado-tag { font-size: 10px; font-weight: 900; padding: 2px 4px; border-radius: 2px; text-transform: uppercase; color: #fff; }
+        .card-resultado-tag.win-style { background-color: var(--win); }
+        .card-resultado-tag.loss-style { background-color: var(--loss); }
+
+        .btn-bulk-win { background: var(--win); color: white; border: 2px solid var(--win); padding: 6px 8px; font-size: 12px; font-weight: 700; border-radius: var(--radius); cursor: pointer; }
+        .btn-bulk-loss { background: var(--loss); color: white; border: 2px solid var(--loss); padding: 6px 8px; font-size: 12px; font-weight: 700; border-radius: var(--radius); cursor: pointer; }
+        
+        .btn-toggle-modo { background: var(--surface); color: var(--text); border: 2px solid var(--border); padding: 6px 14px; font-size: 12px; display: flex; align-items: center; gap: 6px; border-radius: var(--radius); cursor: pointer; }
+        .btn-toggle-modo.modo-blindar { border-left: 6px solid var(--win); font-weight: 700; }
+        .btn-toggle-modo.modo-resetar { border-left: 6px solid var(--purple); font-weight: 700; }
+        
+        .progress-container { background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius); padding: 12px; margin-bottom: 12px; box-shadow: var(--shadow); }
+        .progress-track { background: var(--surface2); height: 12px; overflow: hidden; margin-bottom: 8px; border: 2px solid var(--border); border-radius: var(--radius); }
+        .progress-fill { background: var(--win); height: 100%; width: 0%; transition: width 0.3s ease; }
+        .progress-footer { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--muted); font-weight: 600; flex-wrap: wrap; gap: 8px; }
+        .progress-footer strong { font-family: 'Segoe UI', sans-serif; font-size: 11px; color: var(--text); font-weight: 700; }
+        
+        .table-container { background: var(--surface); border: 2px solid var(--border); box-shadow: var(--shadow); overflow-x: auto; max-height: 520px; overflow-y: auto; position: relative; border-radius: var(--radius); }
+        table.operations-table { width: 100%; border-collapse: collapse; text-align: left; min-width: 600px; }
+        table.operations-table th { background: var(--surface2); color: var(--text); font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 10px 12px; border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 10; }
+        table.operations-table td { padding: 8px 12px; border-bottom: 2px solid var(--border); font-size: 13px; font-weight: 600; }
+        table.operations-table tr:hover { background-color: rgba(0,0,0,0.04); }
+        
+        .row-finished { background-color: rgba(37, 99, 235, 0.08) !important; opacity: 0.75; }
+        .row-loss-streak { background-color: rgba(185, 28, 28, 0.08) !important; }
+        
+        .letra-badge { font-size: 12px; font-weight: 900; color: #ffffff; padding: 2px 6px; border-radius: 2px; text-shadow: 0px 1px 2px rgba(0,0,0,0.5); background-color: var(--accent); }
+        .status-badge { font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 2px; text-transform: uppercase; display: inline-block; }
+        .status-badge.pending { background: #fef9c3; color: #854d0e; border: 1px solid #fef08a; }
+        .status-badge.finished { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        
+        .mono-text { font-family: 'DM Mono', monospace; font-weight: 700; }
+        .win-text { color: var(--win); font-weight: 700; }
+        .loss-text { color: var(--loss); font-weight: 700; }
+        
+        .chart-container { background: var(--surface); border: 2px solid var(--border); padding: 12px; box-shadow: var(--shadow); border-radius: var(--radius); margin-top: 16px; }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-weight: 700; gap: 10px; flex-wrap: wrap; }
+        
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 4px; color: var(--muted); }
+        .form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 10px; }
+        .form-row-triple { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+        
+        .odds-inputs-box { border: 2px solid var(--border); background: var(--surface2); padding: 12px; margin-top: 10px; border-radius: var(--radius); }
+        .odds-box-title { font-size: 12px; font-weight: 800; margin-bottom: 8px; text-transform: uppercase; color: var(--accent); }
+        
+        .backup-controls { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 2px solid var(--border); }
+        .config-layout-grid { display: grid; grid-template-columns: 1fr 1.2fr; gap: 16px; align-items: start; }
+        @media (max-width: 900px) { .config-layout-grid { grid-template-columns: 1fr; } }
+        .config-column { display: flex; flex-direction: column; gap: 12px; }
+        
+        .toggle-chart-mode-box { display: flex; gap: 4px; background: var(--surface2); padding: 2px; border-radius: var(--radius); border: 2px solid var(--border); }
+        .toggle-chart-btn { background: transparent; border: none; font-size: 11px; font-weight: 700; color: var(--text); padding: 4px 8px; border-radius: 2px; cursor: pointer; }
+        .toggle-chart-btn.active { background: var(--accent); color: white; }
+        
+        .active-filter { background: var(--accent) !important; color: white !important; font-weight: 700; }
+        .command-panel-top button { background: var(--surface); color: var(--text); border: 2px solid var(--border); padding: 4px 10px; font-size: 12px; border-radius: var(--radius); cursor: pointer; }
+        .btn-delete-hist { background: var(--loss); color: white; border: 1px solid var(--loss); padding: 2px 6px; font-size: 11px; font-weight: 700; cursor: pointer; border-radius: 2px; }
+        
+        .select-modo-dist { width: 100%; padding: 8px; border: 2px solid var(--border); background: var(--surface); color: var(--text); font-weight: 700; border-radius: var(--radius); cursor: pointer; outline: none; }
+        
+        .preview-item-row { display: flex; justify-content: space-between; border-bottom: 1px dashed var(--border); padding: 4px 0; font-family: 'DM Mono', monospace; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+    <div id="modal-meta" class="win-modal-overlay">
+        <div class="win-modal-box">
+            <div class="win-modal-header meta-style">META ALCANÇADA</div>
+            <div class="win-modal-body">Parabéns! A meta da etapa global foi atingida com sucesso.</div>
+            <div class="win-modal-footer"><button class="btn-modal-close" onclick="fecharModal('modal-meta')">Fechar</button></div>
+        </div>
+    </div>
+
+    <div id="modal-stop" class="win-modal-overlay">
+        <div class="win-modal-box">
+            <div class="win-modal-header stop-style">⚠️ STOP LOSS ALCANÇADO</div>
+            <div class="win-modal-body">O limite de Stop Loss global foi atingido. Interrompa as operações.</div>
+            <div class="win-modal-footer"><button class="btn-modal-close" onclick="fecharModal('modal-stop')">Fechar</button></div>
+        </div>
+    </div>
+
+    <div id="modal-encerrar-rodada" class="win-modal-overlay">
+        <div class="win-modal-box">
+            <div class="win-modal-header preview-style">📋 Resumo Atual das Apostas</div>
+            <div class="win-modal-body">
+                <p style="font-size:12px; color:var(--muted); margin-bottom:8px;">Abaixo estão listados os riscos consolidados activos por Letra nesta rodada:</p>
+                <div id="placeholder-preview-valores-rodada"></div>
+            </div>
+            <div class="win-modal-footer">
+                <button class="btn-modal-close" onclick="fecharModal('modal-encerrar-rodada')">Cancelar</button>
+                <button class="btn-modal-confirm" onclick="confirmarEncerramentoRodadaReal()">Confirmar Rotação</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-processamento" class="processing-toast">
+        <div class="processing-header">
+            <span>⚙️ Processando Lotes...</span>
+            <span id="toast-percentual">0%</span>
+        </div>
+        <div class="processing-bar-container">
+            <div id="toast-barra" class="processing-bar-fill"></div>
+        </div>
+    </div>
+
+    <header>
+        <div class="logo-container">
+            <div class="logo">🎯 Método Marantan</div>
+            <div class="status-container">
+                <button id="status-sheets" class="status-sheets status-on">🟢 Sheets: Conectado</button>
+                <button class="btn-force-sync" onclick="forcarSalvamentoSheets()">🔄 Forçar Salvar</button>
+            </div>
+            <div class="version-tag">Versão 28.3 | URL do Sheets Editável em Tela</div>
+        </div>
+        <div class="header-controls">
+            <button onclick="toggleTheme()" style="padding:4px 8px; cursor:pointer;">🌓 Tema</button>
+            <button id="btn-panic-sair" style="padding:4px 8px; cursor:pointer; background:var(--loss); color:white; border:none; font-weight:700;">Sair</button>
+        </div>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" id="tab-btn-painel" onclick="openTab('painel')">📊 Dashboard</button>
+        <button class="tab-btn" id="tab-btn-registro-lotes" onclick="openTab('registro-lotes')">🏟️ Painel Operacional</button>
+        <button class="tab-btn" id="tab-btn-config" onclick="openTab('config')">⚙️ Configurações</button>
+        <button class="tab-btn" id="tab-btn-historico" onclick="openTab('historico')">📜 Histórico</button>
+    </div>
+
+    <div class="container">
+        
+        <div id="painel" class="tab-content active">
+            <div class="kpi-grid">
+                <div class="kpi-card"><div class="kpi-title">Banca Ativa Atual</div><div class="kpi-value" id="kpi-banca" style="color:var(--accent);">R$ 0,00</div></div>
+                <div class="kpi-card"><div class="kpi-title">Lucro Líquido Acumulado</div><div class="kpi-value" id="kpi-lucro">R$ 0,00</div></div>
+            </div>
+            <div class="kpi-grid">
+                <div class="kpi-card win-border"><div class="kpi-title">Alvo da Meta (Etapa)</div><div class="kpi-value" id="kpi-meta">R$ 0,00</div></div>
+                <div class="kpi-card loss-border"><div class="kpi-title">Limite Stop Loss (Etapa)</div><div class="kpi-value" id="kpi-stoploss">R$ 0,00</div></div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-header">
+                    <span>Acompanhamento Patrimonial Ativo Composto</span>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div class="toggle-chart-mode-box">
+                            <button id="btn-chart-date" class="toggle-chart-btn active" onclick="setGraficoMode('DATA')">📅 Por Data</button>
+                            <button id="btn-chart-etapa" class="toggle-chart-btn" onclick="setGraficoMode('ETAPA')">📊 Por Etapa</button>
+                        </div>
+                        <span style="font-size:11px; font-weight:700;">Dias Proj:</span>
+                        <input type="number" id="input-etapas" class="win-input" value="150" min="10" max="500" style="width: 65px; padding:4px;" onchange="renderizarGrafico()">
+                    </div>
+                </div>
+                <canvas id="meuGrafico" height="130"></canvas>
+            </div>
+        </div>
+
+        <div id="registro-lotes" class="tab-content">
+            <div class="etapa-painel">
+                <div class="etapa-info">
+                    Etapa Ativa: <strong id="lbl-etapa-num" style="color: var(--accent);">#1</strong> | Base Ativa (Soma Total): <strong id="lbl-banca-etapa" style="color: #673ab7;">R$ 0,00</strong> | Parcial Etapa: <strong id="lbl-lucro-etapa">R$ 0,00</strong>
+                </div>
+                <div class="panel-row" style="margin-top: 10px;">
+                    <div><span>Total Lotes da Etapa: <strong id="lbl-lotes-total" style="color: var(--win); font-size:15px;">0</strong></span></div>
+                    
+                    <div id="wrapper-contadores-blindar" style="display: flex;">
+                        <div style="color: var(--win); margin-left: 10px;"><span>Vencidos (Blindados): <strong id="lbl-lotes-win">0</strong></span></div>
+                        <div style="color: var(--loss); margin-left: 10px;"><span>Pendentes Operacionais: <strong id="lbl-lotes-loss">0</strong></span></div>
+                    </div>
+                    <div id="wrapper-contador-resetar" style="color: var(--purple); margin-left: 10px; font-weight: 700; display: none;">
+                        <span>Vitórias Acumuladas: <strong id="lbl-vitorias-resetar-contador">0</strong></span>
+                    </div>
+
+                    <div style="margin-left: auto; display: flex; gap: 6px;">
+                        <button style="background-color:var(--purple); color:white; border:none; padding:6px 12px; font-weight:600; cursor:pointer; border-radius:4px;" onclick="solicitarAberturaJanelaRodada()">🔄 Encerrar Rodada</button>
+                        <button onclick="fecharEtapa()" style="background:var(--accent); color:white; border:2px solid var(--accent); padding:6px 12px; font-weight:600; cursor:pointer; border-radius:4px;">💾 Concluir Etapa</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="command-panel-top">
+                <div class="panel-row" style="margin-bottom: 10px;">
+                    <button id="btn-toggle-modo-pos-win" class="btn-toggle-modo modo-blindar" onclick="afternarModoPosWin()">🔒 Pós-Win: Blindar Lote</button>
+                    <div style="margin-left: auto; display: flex; gap: 4px; align-items: center;">
+                        <span style="font-size:12px; font-weight:700;">👁️ Filtros:</span>
+                        <button id="btn-filter-all" class="active-filter" onclick="alterarFiltroExibicao('all')">Ver Tudo</button>
+                        <button id="btn-filter-pending" onclick="alterarFiltroExibicao('pending')">Pendentes</button>
+                        <button id="btn-filter-loss" onclick="alterarFiltroExibicao('loss')">Em Recuperação</button>
+                    </div>
+                </div>
+                <div class="grid-cards-letras" id="container-cards-letras-dinamicos"></div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-track"><div id="progresso-bar" class="progress-fill"></div></div>
+                <div class="progress-footer">
+                    <span>INICIAL OPERACIONAL: <strong id="progresso-inicial">R$ 0,00</strong></span>
+                    <span>VALOR OPERACIONAL ATUAL: <strong id="progresso-valor-atual" style="color: var(--accent);">R$ 0,00</strong></span>
+                    <span>AVANÇO DE ETAPA: <strong id="progresso-porcentagem-real" style="color: var(--win);">0.00%</strong></span>
+                    <span>META DEFINIDA: <strong id="progresso-meta">0%</strong></span>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table class="operations-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 70px;">Lote ID</th>
+                            <th style="width: 80px; text-align: center;">Letra</th>
+                            <th style="width: 90px;">Odd Target</th>
+                            <th style="width: 130px;">Risco Acum.</th>
+                            <th style="width: 130px; color: var(--win);">Aposta Projetada</th>
+                            <th style="width: 120px;">Vitórias / Derrotas</th>
+                            <th style="width: 110px; text-align: center;">Status</th>
+                            <th style="width: 160px; text-align: center;">Lançar Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-linhas-lotes"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="config" class="tab-content">
+            <div class="config-layout-grid">
+                <div class="config-column">
+                    <div class="chart-container" style="border-top: 4px solid var(--purple); margin-top:0;">
+                        <div class="odds-box-title" style="color: var(--purple);">📐 Algoritmo de Distribuição dos Lotes</div>
+                        <div class="form-group" style="margin-top: 5px;">
+                            <select id="cfg-modo-distribuicao" class="select-modo-dist">
+                                <option value="PROPORCIONAL">Proporcional Inverso (Focado nas Odds)</option>
+                                <option value="LINEAR">Linear Estrito (Divisão Igualitária)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="chart-container" style="border-top: 4px solid var(--win); margin-top:0;">
+                        <div class="odds-box-title" style="color: var(--win);">🔗 Integração do Google Sheets</div>
+                        <div class="form-group" style="margin-top: 5px;">
+                            <label>URL da API Web App (Deployment Exec Link)</label>
+                            <input type="text" id="cfg-sheets-url" class="win-input" placeholder="https://script.google.com/macros/s/.../exec" style="font-family:'DM Mono', monospace; font-size:12px;">
+                        </div>
+                    </div>
+
+                    <div class="chart-container" style="border-top: 4px solid var(--border); margin-top:0;">
+                        <div class="odds-box-title" style="color: var(--text); font-size:13px; margin-bottom:12px;">⚙️ PARÂMETROS GLOBAIS</div>
+                        <div class="form-group">
+                            <label>🔗 Data de Início do Ciclo</label>
+                            <input type="date" id="cfg-data-inicio" class="win-input" onchange="alterarDataInicioCicloUI()">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Divisão Estratégica do Capital Alocado</label>
+                            <div class="form-row-triple">
+                                <div>
+                                    <span style="font-size:11px; font-weight:700; color:var(--muted);">🏦 Banco (Protegido)</span>
+                                    <input type="number" id="cfg-banco-capital" class="win-input" step="0.01" value="0.00" oninput="calcularSomaCapitalGeralUI()">
+                                </div>
+                                <div>
+                                    <span style="font-size:11px; font-weight:700; color:var(--win);">⚔️ Banca (Ativa)</span>
+                                    <input type="number" id="cfg-banca-capital" class="win-input" step="0.01" value="100.00" oninput="calcularSomaCapitalGeralUI(); ajustarBancaAtivaExternamente();">
+                                </div>
+                                <div>
+                                    <span style="font-size:11px; font-weight:700; color:var(--text);">💰 Inicial Geral</span>
+                                    <input type="number" id="cfg-banca-total-disabled" class="win-input" value="100.00" disabled style="font-weight:700;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group"><label>Meta por Etapa (%)</label><input type="number" id="cfg-meta" class="win-input" step="0.1" value="5.0"></div>
+                            <div class="form-group"><label>Stop Loss por Etapa (%)</label><input type="number" id="cfg-stoploss" class="win-input" step="0.1" value="15.0"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Aposta Base Mínima (%)</label><input type="number" id="cfg-aposta-base-pct" class="win-input" step="0.001" value="0.01"></div>
+                            <div class="form-group"><label>Quantidade Absoluta de Lotes (Total Fixo)</label><input type="number" id="cfg-lote" class="win-input" value="500" min="1" max="1500"></div>
+                        </div>
+                        <div class="form-group">
+                            <label>Variedade Letras Editáveis (A até Z)</label>
+                            <input type="number" id="cfg-aleatoriedade" class="win-input" value="6" min="1" max="26" oninput="ajustarCamposDeOddsMenu()">
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container" style="background:transparent; border:none; padding:0; box-shadow:none; display:flex; flex-direction:column; gap:8px; margin-top:0;">
+                        <button class="btn-bulk-win" onclick="salvarConfiguracoes()" style="width: 100%; font-size: 13px; padding: 10px; font-weight:700; background:var(--accent); border-color:var(--accent); color:white;">💾 Salvar Parâmetros e Atualizar Grade</button>
+                        <div class="backup-controls">
+                            <button onclick="exportarDadosSistema()" style="cursor:pointer;">💾 Exportar Backup</button>
+                            <input type="file" id="file-restore" style="display:none" accept=".json" onchange="importarDadosSistema(event)">
+                            <button onclick="document.getElementById('file-restore').click()" style="cursor:pointer;">📂 Importar Backup</button>
+                        </div>
+                        <button onclick="reiniciarBancaTotalSistema()" style="color: var(--loss); border-color: var(--loss); width:100%; font-size:12px; background:transparent; padding:6px; cursor:pointer; border:2px dashed var(--loss); font-weight:700;">⚠️ Reset Total do Histórico e Reiniciar Nova Banca</button>
+                    </div>
+                </div>
+                <div class="config-column">
+                    <div class="chart-container" style="border-top: 4px solid var(--accent); margin-top:0;">
+                        <div class="odds-inputs-box" style="margin-top:0; padding:0; background:transparent; border:none;">
+                            <div class="odds-box-title">Valores de Odds Alvo por Letra</div>
+                            <div id="odds-inputs-placeholder" style="display:grid; grid-template-columns: 1fr; gap:6px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="historico" class="tab-content">
+            <div class="table-container">
+                <table class="operations-table">
+                    <thead>
+                        <tr>
+                            <th>Etapa</th>
+                            <th>Data do Fechamento</th>
+                            <th>Horário</th>
+                            <th>Lucro Líquido Gerado</th>
+                            <th>Saldo Final da Banca Ativa</th>
+                            <th style="width:100px; text-align:center;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-historico-etapas"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const hojeISO = new Date().toISOString().split('T')[0];
+
+        const DEFAULT_STATE = { 
+            bancoCapital: 0.00, bancaInicial: 100.00, bancaAtual: 100.00, bancaInicioEtapa: 100.00, etapaAtual: 1, 
+            metaPercent: 5.0, stopLossPercent: 15.0, apostaBasePercent: 0.01,
+            loteQtd: 500, aleatoriedade: 6, 
+            dataInicioCiclo: hojeISO,
+            sheetsUrl: "https://script.google.com/macros/s/AKfycbzLoJhsORV-OstovL0HXnZzkGo3rAP-45Q8e_2vbHOtWerstbJrCQsf2yN7rQ9JO3Jr/exec", 
+            chartMode: "DATA", 
+            oddsPorLetra: {"A": 1.80, "B": 1.80, "C": 1.80, "D": 1.80, "E": 1.80, "F": 1.80}, 
+            anotacoesPorLetra: {"A": "", "B": "", "C": "", "D": "", "E": "", "F": ""},
+            modoPosWin: "BLINDAR", 
+            modoDistribuicao: "PROPORCIONAL", 
+            marantanLancamentosRodada: {}, 
+            sequencias: [], 
+            historico: [], 
+            resultadosReaisGrafico: [100.00],
+            vitoriasRodadaVoltarInicial: 0,
+            ultimoTimestampSinc: 0
+        };
+
+        let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+        let sinalizadoMeta = false, sinalizadoStop = false, chartInstance = null;
+        let filtroAtualExibicao = 'all';
+        let sheetsTimeout = null;
+
+        function fecharModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function atualizarStatusSheets(status) {
+            const btn = document.getElementById('status-sheets');
+            if (!btn) return;
+            btn.className = 'status-sheets';
+            if (status === 'on') { btn.innerText = '🟢 Sheets: Conectado'; btn.classList.add('status-on'); }
+            else if (status === 'sync') { btn.innerText = '🟡 Sincronizando Lote...'; btn.classList.add('status-sync'); }
+            else { btn.innerText = '🔴 Erro de Conexão'; btn.classList.add('status-err'); }
+        }
+
+        async function salvarNaNuvem(sincrona = false) { 
+            if(!state.sheetsUrl || !state.sheetsUrl.startsWith("http")) {
+                atualizarStatusSheets('err');
+                return;
+            }
+            state.ultimoTimestampSinc = Date.now();
+            const payload = JSON.stringify(state);
+
+            if (sincrona && navigator.sendBeacon) {
+                navigator.sendBeacon(state.sheetsUrl, payload);
+                return;
+            }
+
+            atualizarStatusSheets('sync');
+            try { 
+                await fetch(state.sheetsUrl, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain" }, body: payload }); 
+                atualizarStatusSheets('on');
+            } catch (err) {
+                atualizarStatusSheets('err');
+            } 
+        }
+
+        function agendarSalvarNuvem() {
+            if (sheetsTimeout) clearTimeout(sheetsTimeout);
+            sheetsTimeout = setTimeout(() => { salvarNaNuvem(); }, 2500);
+        }
+
+        async function forcarSalvamentoSheets() {
+            if (sheetsTimeout) clearTimeout(sheetsTimeout);
+            await salvarNaNuvem();
+            alert("✅ Sincronização manual enviada com sucesso!");
+        }
+
+        function aplicarBlindagemDeVariaveis() {
+            if (!state || typeof state !== 'object') state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+            if (state.bancoCapital === undefined) state.bancoCapital = 0.00;
+            if (!state.marantanLancamentosRodada) state.marantanLancamentosRodada = {};
+            if (!state.oddsPorLetra) state.oddsPorLetra = {"A": 1.80, "B": 1.80, "C": 1.80, "D": 1.80, "E": 1.80, "F": 1.80};
+            if (!state.anotacoesPorLetra) state.anotacoesPorLetra = {"A": "", "B": "", "C": "", "D": "", "E": "", "F": ""};
+            if (!state.modoPosWin) state.modoPosWin = "BLINDAR";
+            if (!state.modoDistribuicao) state.modoDistribuicao = "PROPORCIONAL";
+            if (!state.dataInicioCiclo) state.dataInicioCiclo = hojeISO;
+            if (!state.historico) state.historico = [];
+            if (!state.resultadosReaisGrafico || state.resultadosReaisGrafico.length === 0) state.resultadosReaisGrafico = [state.bancaInicial || 100.00];
+            if (!state.aleatoriedade) state.aleatoriedade = 6;
+            if (!state.sequencias) state.sequencias = [];
+            if (state.vitoriasRodadaVoltarInicial === undefined) state.vitoriasRodadaVoltarInicial = 0;
+            if (state.loteQtd === undefined) state.loteQtd = 500;
+            if (!state.ultimoTimestampSinc) state.ultimoTimestampSinc = 0;
+            if (!state.sheetsUrl) state.sheetsUrl = "https://script.google.com/macros/s/AKfycbzLoJhsORV-OstovL0HXnZzkGo3rAP-45Q8e_2vbHOtWerstbJrCQsf2yN7rQ9JO3Jr/exec";
+        }
+
+        async function carregarDaNuvem() {
+            if(!state.sheetsUrl || !state.sheetsUrl.startsWith("http")) return;
+            atualizarStatusSheets('sync');
+            try {
+                const response = await fetch(state.sheetsUrl); 
+                let data = await response.json();
+                if (data && data.bancaInicial !== undefined) { 
+                    const localData = localStorage.getItem('marantanWinDataV27.1');
+                    if (localData) {
+                        const parsedLocal = JSON.parse(localData);
+                        if (parsedLocal.ultimoTimestampSinc && data.ultimoTimestampSinc && parsedLocal.ultimoTimestampSinc > data.ultimoTimestampSinc) {
+                            atualizarStatusSheets('on');
+                            return; 
+                        }
+                    }
+                    state = data; 
+                    aplicarBlindagemDeVariaveis();
+                    localStorage.setItem('marantanWinDataV27.1', JSON.stringify(state)); 
+                    preencherCamposConfig(); 
+                    ajustarCamposDeOddsMenu(true); 
+                    atualizarPainelUI(true); 
+                    atualizarStatusSheets('on');
+                }
+            } catch (err) { 
+                atualizarStatusSheets('err');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => { 
+            carregarDadosCacheLocal(); 
+            if (!state.sequencias || state.sequencias.length === 0) {
+                gerarEstruturaLotesIniciais(); 
+            }
+            preencherCamposConfig(); 
+            ajustarCamposDeOddsMenu(true); 
+            atualizarPainelUI(true); 
+            calcularSomaCapitalGeralUI();
+            
+            setTimeout(() => { carregarDaNuvem(); }, 400);
+        });
+
+        window.addEventListener('beforeunload', () => {
+            salvarNaNuvem(true);
+        });
+        document.getElementById('btn-panic-sair').addEventListener('click', () => {
+            salvarNaNuvem(true);
+            setTimeout(() => { window.location.href = 'https://www.google.com'; }, 200);
+        });
+
+        function exportarDadosSistema() { const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state)); const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", "marantan_v28_3_backup.json"); dl.click(); }
+        function importarDadosSistema(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = function(e) { try { state = JSON.parse(e.target.result); aplicarBlindagemDeVariaveis(); state.ultimoTimestampSinc = Date.now(); salvarDadosEAtualizarTudo(); alert("Backup restaurado!"); location.reload(); } catch(err) { alert("Falha ao processar arquivo JSON."); } }; reader.readAsText(file); }
+        
+        function openTab(tabId) { 
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active')); 
+            document.querySelectorAll('.tabs .tab-btn').forEach(el => el.classList.remove('active')); 
+            
+            const contentPanel = document.getElementById(tabId);
+            if(contentPanel) contentPanel.classList.add('active'); 
+            
+            const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+            if(activeBtn) activeBtn.classList.add('active');
+            
+            atualizarPainelUI(true); 
+        }
+
+        function getValorApostaBase() { return state.bancaAtual * (state.apostaBasePercent / 100); }
+        
+        function obterTodasLetrasConfiguradas() {
+            const qtdLetras = Math.min(state.aleatoriedade || 6, 26);
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            let lista = [];
+            for (let i = 0; i < qtdLetras; i++) { lista.push(alphabet[i]); }
+            return lista;
+        }
+
+        function calcularSomaCapitalGeralUI() {
+            const banco = parseFloat(document.getElementById('cfg-banco-capital').value) || 0;
+            const banca = parseFloat(document.getElementById('cfg-banca-capital').value) || 0;
+            document.getElementById('cfg-banca-total-disabled').value = (banco + banca).toFixed(2);
+        }
+
+        function gerarEstruturaLotesIniciais() { 
+            const numeroTotalLotesGeral = parseInt(state.loteQtd) || 500;
+            const apostaBase = getValorApostaBase();
+            const letrasConfiguradas = obterTodasLetrasConfiguradas();
+
+            let cotasLotesPorLetra = {};
+            let totalDistribuido = 0;
+
+            if (state.modoDistribuicao === "LINEAR") {
+                const tamanhoIgual = Math.floor(numeroTotalLotesGeral / letrasConfiguradas.length);
+                letrasConfiguradas.forEach((letra, idx) => {
+                    if (idx === letrasConfiguradas.length - 1) {
+                        cotasLotesPorLetra[letra] = numeroTotalLotesGeral - totalDistribuido;
+                    } else {
+                        cotasLotesPorLetra[letra] = tamanhoIgual;
+                        totalDistribuido += tamanhoIgual;
+                    }
+                });
+            } else {
+                let pesosLetras = {};
+                let somaPesos = 0;
+                letrasConfiguradas.forEach(letra => {
+                    const odd = state.oddsPorLetra[letra] || 1.80;
+                    const pesoInverso = 1 / (odd > 1 ? odd : 1.1); 
+                    pesosLetras[letra] = pesoInverso;
+                    somaPesos += pesoInverso;
+                });
+
+                letrasConfiguradas.forEach((letra, idx) => {
+                    if (idx === letrasConfiguradas.length - 1) {
+                        cotasLotesPorLetra[letra] = numeroTotalLotesGeral - totalDistribuido;
+                    } else {
+                        let quantidadeCalculada = Math.round((pesosLetras[letra] / somaPesos) * numeroTotalLotesGeral);
+                        cotasLotesPorLetra[letra] = quantidadeCalculada;
+                        totalDistribuido += quantidadeCalculada;
+                    }
+                });
+            }
+
+            let poolDeLetrasPreDefinido = [];
+            letrasConfiguradas.forEach(letra => {
+                const totalLotesDessaLetra = cotasLotesPorLetra[letra];
+                for (let k = 0; k < totalLotesDessaLetra; k++) { poolDeLetrasPreDefinido.push(letra); }
+            });
+
+            while (poolDeLetrasPreDefinido.length < numeroTotalLotesGeral) { poolDeLetrasPreDefinido.push(letrasConfiguradas[0]); }
+            if (poolDeLetrasPreDefinido.length > numeroTotalLotesGeral) { poolDeLetrasPreDefinido = poolDeLetrasPreDefinido.slice(0, numeroTotalLotesGeral); }
+
+            state.sequencias = Array.from({length: numeroTotalLotesGeral}, (_, i) => ({ 
+                id: i + 1, apostaAtual: apostaBase, streakLoss: 0, letraRandomica: poolDeLetrasPreDefinido[i], 
+                winsEtapa: 0, lossesEtapa: 0, perdasAcumuladas: 0, status: "PENDING"
+            })); 
+
+            state.marantanLancamentosRodada = {};
+            salvarDadosEAtualizarTudo(); 
+        }
+
+        function solicitarAberturaJanelaRodada() {
+            const containerPreview = document.getElementById('placeholder-preview-valores-rodada');
+            if(!containerPreview) return;
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const fmt = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            
+            let previewHtml = '';
+            for(let i = 0; i < Math.min(state.aleatoriedade, 26); i++) {
+                const letra = alphabet[i];
+                const totalApostaLetra = state.sequencias
+                    .filter(seq => seq.letraRandomica === letra && seq.status !== 'FINISHED')
+                    .reduce((acc, curr) => acc + sniperArredondarAposta(curr.apostaAtual), 0);
+                
+                const contagemLotes = state.sequencias.filter(seq => seq.letraRandomica === letra && seq.status !== 'FINISHED').length;
+
+                previewHtml += `
+                    <div class="preview-item-row">
+                        <span>Letra [${letra}] (${contagemLotes} lotes ativos):</span>
+                        <strong>${fmt(totalApostaLetra)}</strong>
+                    </div>`;
+            }
+            containerPreview.innerHTML = previewHtml;
+            document.getElementById('modal-encerrar-rodada').style.display = 'flex';
+        }
+
+        function confirmarEncerramentoRodadaReal() {
+            fecharModal('modal-encerrar-rodada');
+            state.marantanLancamentosRodada = {};
+            const todasAsLetrasDoPool = state.sequencias.map(s => s.letraRandomica);
+
+            for (let i = todasAsLetrasDoPool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [todasAsLetrasDoPool[i], todasAsLetrasDoPool[j]] = [todasAsLetrasDoPool[j], todasAsLetrasDoPool[i]];
+            }
+
+            state.sequencias.forEach((seq, idx) => { seq.letraRandomica = todasAsLetrasDoPool[idx]; });
+            state.sequencias.forEach(s => {
+                if (s.status === 'PENDING' && s.perdasAcumuladas === 0) { s.apostaAtual = getValorApostaBase(); }
+            });
+
+            salvarDadosEAtualizarTudo(); 
+            alert("🔄 Rodada encerrada! Posições rotacionadas e dados sincronizados.");
+        }
+
+        function ajustarCamposDeOddsMenu(usarDadosDoState = false) {
+            const qtdLetras = parseInt(document.getElementById('cfg-aleatoriedade').value) || 6; 
+            const container = document.getElementById('odds-inputs-placeholder'); 
+            if(!container) return;
+            
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            container.innerHTML = ''; 
+            let htmlStr = '';
+            for(let i = 0; i < Math.min(qtdLetras, 26); i++) {
+                const letra = alphabet[i];
+                let valorOdd = 1.80;
+                let valorNota = "";
+                if(usarDadosDoState && state.oddsPorLetra && state.oddsPorLetra[letra] !== undefined) valorOdd = state.oddsPorLetra[letra];
+                if(usarDadosDoState && state.anotacoesPorLetra && state.anotacoesPorLetra[letra]) valorNota = state.anotacoesPorLetra[letra];
+                
+                htmlStr += `
+                <div style="display: grid; grid-template-columns: 80px 1fr; gap: 6px; background: var(--surface); padding: 6px; border: 2px solid var(--border); border-radius: var(--radius);">
+                    <div class="form-group" style="margin-bottom:0;"><label>Odd ${letra}</label><input type="number" id="cfg-odd-letra-${letra}" class="win-input" style="padding:4px 6px; font-size:12px; font-weight:700;" step="0.01" value="${valorOdd.toFixed(2)}"></div>
+                    <div class="form-group" style="margin-bottom:0;"><label>Nota ${letra}</label><input type="text" id="cfg-nota-letra-${letra}" class="win-input" style="padding:4px 6px; font-size:12px; font-weight:700;" value="${valorNota}" placeholder="Mercado..."></div>
+                </div>`;
+            } 
+            container.innerHTML = htmlStr;
+        }
+
+        function salvarDadosEAtualizarTudo() { 
+            state.ultimoTimestampSinc = Date.now();
+            localStorage.setItem('marantanWinDataV27.1', JSON.stringify(state)); 
+            atualizarPainelUI(false); 
+            agendarSalvarNuvem();
+        }
+
+        function carregarDadosCacheLocal() { 
+            try {
+                let data = localStorage.getItem('marantanWinDataV27.1'); 
+                if (data) { 
+                    let parsedData = JSON.parse(data);
+                    if (parsedData && parsedData.bancaInicial !== undefined) {
+                        state = parsedData;
+                        aplicarBlindagemDeVariaveis();
+                    } else { state = JSON.parse(JSON.stringify(DEFAULT_STATE)); }
+                } else { state = JSON.parse(JSON.stringify(DEFAULT_STATE)); }
+            } catch(e) { state = JSON.parse(JSON.stringify(DEFAULT_STATE)); }
+        }
+        
+        function reiniciarBancaTotalSistema() { 
+            if(confirm("⚠️ Deseja realmente resetar por completo toda a aplicação?")) { 
+                state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+                state.bancoCapital = parseFloat(document.getElementById('cfg-banco-capital').value) || 0.00;
+                state.bancaInicial = parseFloat(document.getElementById('cfg-banca-capital').value) || 100.00;
+                state.bancaAtual = state.bancaInicial; 
+                state.bancaInicioEtapa = state.bancaInicial; 
+                state.resultadosReaisGrafico = [state.bancaInicial];
+                sinalizadoMeta = false; sinalizadoStop = false;
+                gerarEstruturaLotesIniciais();
+                state.vitoriasRodadaVoltarInicial = 0; 
+                salvarDadosEAtualizarTudo();
+                alert("Sistema reiniciado e sincronizado!");
+            } 
+        }
+
+        function ajustarBancaAtivaExternamente() {
+            const novoValor = parseFloat(document.getElementById('cfg-banca-capital').value);
+            if(isNaN(novoValor) || novoValor <= 0) return;
+            const parcialLucroNaEtapa = state.bancaAtual - state.bancaInicioEtapa;
+            state.bancaInicial = novoValor;
+            state.bancaInicioEtapa = novoValor;
+            state.bancaAtual = novoValor + parcialLucroNaEtapa;
+            salvarDadosEAtualizarTudo();
+        }
+
+        function Helen_RecalcularBancaPorHistorico() {
+            let valorAcumulado = state.bancaInicial;
+            let novosPointsGrafico = [state.bancaInicial];
+            state.historico.forEach((item) => {
+                valorAcumulado += item.lucro;
+                item.bancaPos = valorAcumulado;
+                novosPointsGrafico.push(valorAcumulado);
+            });
+            state.bancaInicioEtapa = valorAcumulado;
+            state.bancaAtual = valorAcumulado;
+            state.resultadosReaisGrafico = novosPointsGrafico;
+        }
+
+        function excluirRegistroEtapaHistorico(index) {
+            if(confirm("🗑 Excluir etapa do seu histórico?")) {
+                state.historico.splice(index, 1);
+                state.historico.forEach((h, idx) => { h.etapa = idx + 1; });
+                state.etapaAtual = state.historico.length + 1;
+                
+                Helen_RecalcularBancaPorHistorico();
+                gerarEstruturaLotesIniciais();
+                state.vitoriasRodadaVoltarInicial = 0;
+                salvarDadosEAtualizarTudo();
+                alert("Etapa removida!");
+            }
+        }
+
+        function alterarDataInicioCicloUI() { state.dataInicioCiclo = document.getElementById('cfg-data-inicio').value; state.ultimoTimestampSinc = Date.now(); localStorage.setItem('marantanWinDataV27.1', JSON.stringify(state)); agendarSalvarNuvem(); }
+
+        function setGraficoMode(modo) {
+            state.chartMode = modo;
+            document.querySelectorAll('.toggle-chart-mode-box button').forEach(b => b.classList.remove('active'));
+            if(modo === 'DATA') document.getElementById('btn-chart-date').classList.add('active');
+            else document.getElementById('btn-chart-etapa').classList.add('active');
+            renderizarGrafico();
+        }
+
+        function salvarConfiguracoes() {
+            state.metaPercent = parseFloat(document.getElementById('cfg-meta').value);
+            state.stopLossPercent = parseFloat(document.getElementById('cfg-stoploss').value);
+            state.apostaBasePercent = parseFloat(document.getElementById('cfg-aposta-base-pct').value);
+            state.loteQtd = parseInt(document.getElementById('cfg-lote').value) || 500;
+            state.aleatoriedade = parseInt(document.getElementById('cfg-aleatoriedade').value) || 6;
+            state.bancoCapital = parseFloat(document.getElementById('cfg-banco-capital').value) || 0.00;
+            state.modoDistribuicao = document.getElementById('cfg-modo-distribuicao').value;
+            state.sheetsUrl = document.getElementById('cfg-sheets-url').value.trim();
+            
+            state.oddsPorLetra = {}; state.anotacoesPorLetra = {};
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            for(let i = 0; i < Math.min(state.aleatoriedade, 26); i++) {
+                const letra = alphabet[i];
+                const inputOdd = document.getElementById(`cfg-odd-letra-${letra}`); 
+                const inputNota = document.getElementById(`cfg-nota-letra-${letra}`);
+                state.oddsPorLetra[letra] = inputOdd ? parseFloat(inputOdd.value) || 1.80 : 1.80;
+                state.anotacoesPorLetra[letra] = inputNota ? inputNota.value : "";
+            }
+            gerarEstruturaLotesIniciais();
+            alert("✅ Configurações e URL do Sheets salvas!");
+        }
+
+        function sniperArredondarAposta(val) { return Math.max(0.01, (Math.ceil(val * 20) / 20)); }
+        function roundedFixo(val){ return Math.round(val * 100) / 100; }
+        
+        function registrarApostaIndividual(index, resultado, emMassa = false) {
+            if (index < 0 || index >= state.sequencias.length) return;
+            const seq = state.sequencias[index];
+            if (seq.status === 'FINISHED') return; 
+
+            const valorApostado = sniperArredondarAposta(seq.apostaAtual);
+            const letraSorteada = (seq.letraRandomica || "A").toUpperCase();
+            const oddDoLote = state.oddsPorLetra[letraSorteada] || 1.80;
+
+            if (resultado === 'WIN') { 
+                seq.winsEtapa++; 
+                state.bancaAtual += (valorApostado * (oddDoLote - 1)); 
+                seq.perdasAcumuladas = 0; 
+                seq.apostaAtual = getValorApostaBase(); 
+                seq.status = state.modoPosWin === "BLINDAR" ? "FINISHED" : "PENDING";
+                state.vitoriasRodadaVoltarInicial++;
+            } else { 
+                seq.lossesEtapa++; 
+                state.bancaAtual -= valorApostado; 
+                seq.perdasAcumuladas += valorApostado; 
+                seq.apostaAtual = (seq.perdasAcumuladas + getValorApostaBase()) / (oddDoLote - 1);
+            }
+            
+            if(!emMassa) {
+                if(state.marantanLancamentosRodada) state.marantanLancamentosRodada[letraSorteada] = resultado;
+                state.sequencias.forEach(s => {
+                    if (s.status === 'PENDING' && s.perdasAcumuladas === 0) { s.apostaAtual = getValorApostaBase(); }
+                });
+                dispararAnimacaoToastLotes(() => {
+                    salvarDadosEAtualizarTudo();
+                });
+            }
+        }
+
+        function executarAcaoEmMassaCard(letraAlvo, resultado) {
+            const letraUpper = letraAlvo.toUpperCase();
+            let processouAlgum = false;
+            let vitoriasDesseCard = 0;
+
+            state.sequencias.forEach((seq) => {
+                if (seq.letraRandomica === letraUpper && seq.status !== 'FINISHED') {
+                    const valorApostado = sniperArredondarAposta(seq.apostaAtual);
+                    const oddDoLote = state.oddsPorLetra[letraUpper] || 1.80;
+
+                    if (resultado === 'WIN') { 
+                        seq.winsEtapa++; 
+                        state.bancaAtual += (valorApostado * (oddDoLote - 1)); 
+                        seq.perdasAcumuladas = 0; 
+                        seq.apostaAtual = getValorApostaBase(); 
+                        seq.status = state.modoPosWin === "BLINDAR" ? "FINISHED" : "PENDING";
+                        vitoriasDesseCard++;
+                    } else { 
+                        seq.lossesEtapa++; 
+                        state.bancaAtual -= valorApostado; 
+                        seq.perdasAcumuladas += valorApostado; 
+                        seq.apostaAtual = (seq.perdasAcumuladas + getValorApostaBase()) / (oddDoLote - 1);
+                    }
+                    processouAlgum = true;
+                }
+            });
+
+            if (!processouAlgum) return;
+            if (resultado === 'WIN') state.vitoriasRodadaVoltarInicial += vitoriasDesseCard;
+            if (state.marantanLancamentosRodada) state.marantanLancamentosRodada[letraUpper] = resultado;
+
+            state.sequencias.forEach(s => {
+                if (s.status === 'PENDING' && s.perdasAcumuladas === 0) { s.apostaAtual = getValorApostaBase(); }
+            });
+
+            dispararAnimacaoToastLotes(() => {
+                salvarDadosEAtualizarTudo();
+            });
+        }
+
+        function distribuirRiscoLoteCrítico(indexAlvo) {
+            if (indexAlvo < 0 || indexAlvo >= state.sequencias.length) return;
+            const loteCritico = state.sequencias[indexAlvo];
+            const outrosLotesAtivos = state.sequencias.filter((s, idx) => s.status === 'PENDING' && idx !== indexAlvo);
+            if (outrosLotesAtivos.length === 0 || loteCritico.perdasAcumuladas <= 0) return;
+
+            if (confirm("⚖️ Fracionar e diluir o risco acumulado desse lote na grade?")) {
+                const fracao = loteCritico.perdasAcumuladas / outrosLotesAtivos.length;
+                loteCritico.perdasAcumuladas = 0;
+                loteCritico.apostaAtual = getValorApostaBase();
+
+                state.sequencias.forEach(seq => {
+                    if (seq.status === 'PENDING' && seq.id !== loteCritico.id) {
+                        seq.perdasAcumuladas = roundedFixo(seq.perdasAcumuladas + fracao);
+                        const oddLote = state.oddsPorLetra[seq.letraRandomica] || 1.80;
+                        seq.apostaAtual = (seq.perdasAcumuladas + getValorApostaBase()) / (oddLote - 1);
+                    }
+                });
+                dispararAnimacaoToastLotes(() => {
+                    salvarDadosEAtualizarTudo();
+                });
+            }
+        }
+
+        function dispararAnimacaoToastLotes(callback) {
+            const toast = document.getElementById('toast-processamento');
+            const barra = document.getElementById('toast-barra');
+            const txt = document.getElementById('toast-percentual');
+            if(!toast || !barra || !txt) { if(callback) callback(); return; }
+
+            toast.style.display = 'flex';
+            barra.style.width = '0%';
+            txt.innerText = '0%';
+
+            let progresso = 0;
+            const intervalo = setInterval(() => {
+                progresso += 25;
+                barra.style.width = progresso + '%';
+                txt.innerText = progresso + '%';
+
+                if(progresso >= 100) {
+                    clearInterval(intervalo);
+                    setTimeout(() => { 
+                        toast.style.display = 'none'; 
+                        if(callback) callback();
+                    }, 50);
+                }
+            }, 30);
+        }
+
+        function alterarFiltroExibicao(tipo) {
+            filtroAtualExibicao = tipo;
+            document.querySelectorAll('.command-panel-top button').forEach(el => {
+                if(el.id && el.id.startsWith('btn-filter-')) el.classList.remove('active-filter');
+            });
+            const activeBtn = document.getElementById(`btn-filter-${tipo}`);
+            if(activeBtn) activeBtn.classList.add('active-filter');
+            renderLinhas();
+        }
+
+        function fecharEtapa() {
+            const lucroEtapa = state.bancaAtual - state.bancaInicioEtapa;
+            if(!state.historico) state.historico = [];
+            state.historico.push({ 
+                etapa: state.etapaAtual, 
+                dataCalendario: new Date().toISOString().split('T')[0], 
+                data: new Date().toLocaleTimeString('pt-BR'), 
+                lucro: lucroEtapa, bancaPos: state.bancaAtual 
+            });
+            state.resultadosReaisGrafico.push(state.bancaAtual); 
+            state.bancaInicioEtapa = state.bancaAtual; 
+            state.etapaAtual++; 
+            sinalizadoMeta = false; sinalizadoStop = false;
+            state.vitoriasRodadaVoltarInicial = 0; 
+            gerarEstruturaLotesIniciais();
+        }
+
+        function renderLinhas() {
+            const tbody = document.getElementById('tabela-linhas-lotes');
+            if(!tbody) return; 
+            
+            const fmt = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            let rowsChunk = '';
+            const totalItems = state.sequencias.length;
+            
+            for(let i=0; i<totalItems; i++) {
+                const seq = state.sequencias[i];
+                if (filtroAtualExibicao === 'pending' && seq.status === 'FINISHED') continue;
+                if (filtroAtualExibicao === 'loss' && seq.perdasAcumuladas === 0) continue;
+                
+                const letra = seq.letraRandomica;
+                const oddReal = state.oddsPorLetra[letra] || 1.80;
+                rowsChunk += `
+                    <tr class="${seq.status==='FINISHED'?'row-finished':(seq.perdasAcumuladas>0?'row-loss-streak':'')}">
+                        <td class="mono-text">#${String(seq.id).padStart(3, '0')}</td>
+                        <td style="text-align:center;"><span class="letra-badge">${letra}</span></td>
+                        <td class="mono-text">@${oddReal.toFixed(2)}</td>
+                        <td class="mono-text">${fmt(seq.perdasAcumuladas)}</td>
+                        <td class="mono-text"><strong>${seq.status==='FINISHED'?fmt(0):fmt(sniperArredondarAposta(seq.apostaAtual))}</strong></td>
+                        <td><span class="win-text">${seq.winsEtapa} Vit</span> | <span class="loss-text">${seq.lossesEtapa} Der</span></td>
+                        <td style="text-align:center;"><span class="status-badge ${seq.status==='FINISHED'?'finished':'pending'}">${seq.status==='FINISHED'?'Concluído':'Pendente'}</span></td>
+                        <td>
+                            <div style="display:flex; gap:4px; justify-content:center;">
+                                <button class="btn-bulk-win" style="padding:4px 8px; font-size:11px;" onclick="registrarApostaIndividual(${i}, 'WIN', false)">Vitória</button>
+                                <button class="btn-bulk-loss" style="padding:4px 8px; font-size:11px;" onclick="registrarApostaIndividual(${i}, 'LOSS', false)">Derrota</button>
+                                <button class="btn-force-sync" style="padding:2px 6px;" onclick="distribuirRiscoLoteCrítico(${i})">⚖️</button>
+                            </div>
+                        </td>
+                    </tr>`;
+            }
+            tbody.innerHTML = rowsChunk;
+        }
+
+        function renderCards() {
+            const container = document.getElementById('container-cards-letras-dinamicos');
+            if(!container) return; 
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const fmt = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            
+            let finalHtml = '';
+            for(let i = 0; i < Math.min(state.aleatoriedade, 26); i++) {
+                const letra = alphabet[i];
+                let lanc = state.marantanLancamentosRodada ? (state.marantanLancamentosRodada[letra] || "") : "";
+                let notaTexto = state.anotacoesPorLetra[letra] || "";
+
+                const lotesAtivosContagem = state.sequencias.filter(seq => seq.letraRandomica === letra && seq.status !== 'FINISHED').length;
+                const totalApostaLetra = state.sequencias
+                    .filter(seq => seq.letraRandomica === letra && seq.status !== 'FINISHED')
+                    .reduce((acc, curr) => acc + sniperArredondarAposta(curr.apostaAtual), 0);
+
+                let resultadoTagHtml = lanc === 'WIN' ? `<span class="card-resultado-tag win-style">Último: VITÓRIA</span>` : (lanc === 'LOSS' ? `<span class="card-resultado-tag loss-style">Último: DERROTA</span>` : '');
+                let esmaecidoEstilo = lanc !== "" ? 'style="opacity: 0.55; filter: grayscale(20%); border: 2px dashed var(--border);"' : '';
+
+                finalHtml += `
+                    <div class="card-letra-operacional" ${esmaecidoEstilo}>
+                        <div class="card-letra-header">
+                            <span class="total-letra-badge">${letra}</span>
+                            ${resultadoTagHtml}
+                            <span class="card-letra-note" title="${notaTexto}">${notaTexto}</span>
+                            <span style="font-weight:700; font-size:11px; color:var(--muted)">Lotes: ${lotesAtivosContagem}</span>
+                        </div>
+                        <div class="card-letra-amount">
+                            Apostas Ativas: <strong>${fmt(totalApostaLetra)}</strong>
+                        </div>
+                        <div class="card-letra-footer-actions">
+                            <button class="btn-bulk-win" onclick="executarAcaoEmMassaCard('${letra}', 'WIN')">🔵 Vitória</button>
+                            <button class="btn-bulk-loss" onclick="executarAcaoEmMassaCard('${letra}', 'LOSS')">🔴 Derrota</button>
+                        </div>
+                    </div>`;
+            }
+            container.innerHTML = finalHtml;
+        }
+
+        function atualizarPainelUI(forcarGrafico = false) {
+            const fmt = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            const baseAtivaSomaTotal = state.bancaAtual + state.bancoCapital;
+            
+            const valorMetaEtapa = state.bancaInicioEtapa * (1 + state.metaPercent/100); 
+            const valorStopLossEtapa = state.bancaInicioEtapa * (1 - state.stopLossPercent/100); 
+            const lucroEtapaAtual = state.bancaAtual - state.bancaInicioEtapa; 
+            
+            if(!state.resultadosReaisGrafico || state.resultadosReaisGrafico.length === 0) { state.resultadosReaisGrafico = [state.bancaInicial]; }
+            
+            document.getElementById('kpi-banca').innerText = fmt(state.bancaAtual); 
+            document.getElementById('kpi-meta').innerText = fmt(valorMetaEtapa); 
+            document.getElementById('kpi-stoploss').innerText = fmt(valorStopLossEtapa); 
+            document.getElementById('kpi-lucro').innerText = fmt(state.bancaAtual - state.resultadosReaisGrafico[0]); 
+            
+            document.getElementById('lbl-etapa-num').innerText = '#' + state.etapaAtual;
+            document.getElementById('lbl-banca-etapa').innerText = fmt(baseAtivaSomaTotal); 
+            document.getElementById('lbl-lucro-etapa').innerText = fmt(lucroEtapaAtual);
+
+            document.getElementById('lbl-lotes-total').innerText = state.sequencias.length;
+            document.getElementById('lbl-lotes-win').innerText = state.sequencias.filter(s=>s.status==='FINISHED').length;
+            document.getElementById('lbl-lotes-loss').innerText = state.sequencias.filter(s=>s.status!=='FINISHED').length;
+
+            document.getElementById('progresso-inicial').innerText = fmt(state.bancaInicioEtapa);
+            document.getElementById('progresso-valor-atual').innerText = fmt(state.bancaAtual); 
+            
+            const inputConfigBanca = document.getElementById('cfg-banca-capital');
+            const inputConfigTotal = document.getElementById('cfg-banca-total-disabled');
+            if(inputConfigBanca) inputConfigBanca.value = state.bancaAtual.toFixed(2);
+            if(inputConfigTotal) inputConfigTotal.value = baseAtivaSomaTotal.toFixed(2);
+            
+            let metaValorDesejado = valorMetaEtapa - state.bancaInicioEtapa;
+            let pct = metaValorDesejado > 0 ? (lucroEtapaAtual / metaValorDesejado) * 100 : 0;
+            if(pct < 0) pct = 0;
+            
+            document.getElementById('progresso-porcentagem-real').innerText = pct.toFixed(2) + '%';
+            document.getElementById('progresso-bar').style.width = Math.min(100, pct) + '%';
+            document.getElementById('progresso-meta').innerText = state.metaPercent + '%';
+
+            if (pct >= 100 && !sinalizadoMeta) { sinalizadoMeta = true; document.getElementById('modal-meta').style.display = 'flex'; }
+            if (state.bancaAtual <= valorStopLossEtapa && !sinalizadoStop) { sinalizadoStop = true; document.getElementById('modal-stop').style.display = 'flex'; }
+
+            const tbodyHist = document.getElementById('tabela-historico-etapas');
+            if(tbodyHist) {
+                let htmlBlocoHist = '';
+                state.historico.forEach((h, idx) => {
+                    htmlBlocoHist += `
+                        <tr>
+                            <td>#${h.etapa}</td> <td>${h.dataCalendario}</td> <td>${h.data}</td>
+                            <td class="win-text">${fmt(h.lucro)}</td> <td class="mono-text">${fmt(h.bancaPos)}</td>
+                            <td style="text-align:center;"><button class="btn-delete-hist" onclick="excluirRegistroEtapaHistorico(${idx})">🗑 Excluir</button></td>
+                        </tr>`;
+                });
+                tbodyHist.innerHTML = htmlBlocoHist;
+            }
+
+            renderLinhas();
+            renderCards();
+            atualizarBotaoModoUI();
+            atualizarLayoutContadoresPorModo();
+            
+            if(forcarGrafico || document.getElementById('painel').classList.contains('active')) { renderizarGrafico(); }
+        }
+
+        function preencherCamposConfig() { 
+            document.getElementById('cfg-banco-capital').value = (state.bancoCapital || 0).toFixed(2);
+            document.getElementById('cfg-banca-capital').value = state.bancaAtual.toFixed(2);
+            document.getElementById('cfg-meta').value = state.metaPercent; 
+            document.getElementById('cfg-stoploss').value = state.stopLossPercent; 
+            document.getElementById('cfg-aposta-base-pct').value = state.apostaBasePercent;
+            document.getElementById('cfg-lote').value = state.loteQtd || 500;
+            document.getElementById('cfg-aleatoriedade').value = state.aleatoriedade;
+            document.getElementById('cfg-data-inicio').value = state.dataInicioCiclo || hojeISO;
+            document.getElementById('cfg-modo-distribuicao').value = state.modoDistribuicao || "PROPORCIONAL";
+            document.getElementById('cfg-sheets-url').value = state.sheetsUrl || "";
+            calcularSomaCapitalGeralUI();
+        }
+
+        function toggleTheme() { document.body.classList.toggle('dark-mode'); renderizarGrafico(); }
+        function afternarModoPosWin() { state.modoPosWin = state.modoPosWin === "BLINDAR" ? "RESETAR" : "BLINDAR"; salvarDadosEAtualizarTudo(); }
+
+        function atualizarBotaoModoUI() {
+            const btn = document.getElementById('btn-toggle-modo-pos-win');
+            if(!btn) return;
+            btn.className = "btn-toggle-modo " + (state.modoPosWin === "BLINDAR" ? "modo-blindar" : "modo-resetar");
+            btn.innerText = state.modoPosWin === "BLINDAR" ? "🔒 Pós-Win: Blindar Lote" : "🔄 Pós-Win: Voltar Inicial";
+        }
+
+        function atualizarLayoutContadoresPorModo() {
+            const bBlock = document.getElementById('wrapper-contadores-blindar');
+            const rBlock = document.getElementById('wrapper-contador-resetar');
+            if(!bBlock || !rBlock) return;
+
+            if (state.modoPosWin === "BLINDAR") {
+                bBlock.style.display = 'flex'; rBlock.style.display = 'none';
+            } else {
+                bBlock.style.display = 'none'; rBlock.style.display = 'flex';
+                document.getElementById('lbl-vitorias-resetar-contador').innerText = state.vitoriasRodadaVoltarInicial;
+            }
+        }
+
+        function renderizarGrafico() {
+            const canvas = document.getElementById('meuGrafico'); 
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            let isDark = document.body.classList.contains('dark-mode');
+            let textColor = isDark ? '#cbd5e1' : '#475569';
+            let gridColor = isDark ? '#334155' : '#e2e8f0';
+
+            let dataPoints = [...state.resultadosReaisGrafico];
+            let labels = [];
+            
+            if(state.chartMode === 'ETAPA') {
+                labels = dataPoints.map((_, idx) => idx === 0 ? 'Início' : 'Etapa ' + idx);
+            } else {
+                let baseTime = new Date(state.dataInicioCiclo + 'T00:00:00');
+                labels = dataPoints.map((_, idx) => {
+                    let d = new Date(baseTime); d.setDate(d.getDate() + idx);
+                    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                });
+            }
+
+            const rangeMax = parseInt(document.getElementById('input-etapas').value) || 150;
+            if(dataPoints.length < rangeMax) {
+                let ultimoValor = dataPoints[dataPoints.length - 1];
+                let compFactor = 1 + (state.metaPercent / 100);
+                let idxAtual = dataPoints.length;
+                
+                while(idxAtual <= rangeMax) {
+                    ultimoValor = ultimoValor * compFactor;
+                    dataPoints.push(ultimoValor);
+                    if(state.chartMode === 'ETAPA') { labels.push('Proj. ' + idxAtual); } 
+                    else {
+                        let d = new Date(state.dataInicioCiclo + 'T00:00:00'); d.setDate(d.getDate() + idxAtual);
+                        labels.push(d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) + ' 🔮');
+                    }
+                    idxAtual++;
+                }
+            }
+
+            if(chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, { 
+                type: 'line', 
+                data: { 
+                    labels: labels, 
+                    datasets: [{ 
+                        label: 'Evolução Banca Ativa (R$)', data: dataPoints, 
+                        borderColor: isDark ? '#60a5fa' : '#2563eb', borderWidth: 3,
+                        pointRadius: dataPoints.map((_, i) => i < state.resultadosReaisGrafico.length ? 4 : 0),
+                        pointBackgroundColor: '#1e3a8a', fill: false, tension: 0.1
+                    }] 
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: true,
+                    plugins: { legend: { labels: { color: textColor, font: { weight: 'bold' } } } },
+                    scales: {
+                        x: { ticks: { color: textColor, maxTicksLimit: 12 }, grid: { color: gridColor } },
+                        y: { 
+                            ticks: { color: textColor, callback: function(value) { return 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); } }, 
+                            grid: { color: gridColor } 
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
